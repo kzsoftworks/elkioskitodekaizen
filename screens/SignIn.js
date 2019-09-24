@@ -38,6 +38,10 @@ export default function SignIn({ navigation }) {
         authState.accessToken = JSON.parse(
           await AsyncStorage.getItem("@KzKiosko:accessToken")
         );
+        if (authState.user) {
+          const firebaseId = await getUserFirebaseId(authState.user);
+          authState.user.firebaseId = firebaseId;
+        }
       } else {
         const { type, accessToken, idToken, user } = await Google.logInAsync(
           authConfig
@@ -54,16 +58,8 @@ export default function SignIn({ navigation }) {
           AsyncStorage.setItem("@KzKiosko:user", JSON.stringify(user));
           authState.accessToken = accessToken;
           authState.user = user;
-          const query = await dbh
-            .collection("users")
-            .where("auth_id", "==", user.id)
-            .get();
-          if (!query.length) {
-            await dbh.collection("users").add({
-              auth_id: user.id,
-              name: user.name,
-            });
-          }
+          const firebaseId = await getUserFirebaseId(user);
+          authState.user.firebaseId = firebaseId;
         } else {
           throw new Error("User Cancelled Login");
         }
@@ -72,6 +68,24 @@ export default function SignIn({ navigation }) {
       unsubscribe();
     });
     return null;
+  }
+
+  async function getUserFirebaseId(user) {
+    const query = await dbh
+      .collection("users")
+      .where("auth_id", "==", user.id)
+      .limit(1)
+      .get();
+
+    if (query.empty) {
+      const docRef = await dbh.collection("users").add({
+        auth_id: user.id,
+        name: user.name,
+      });
+      return docRef.id;
+    } else {
+      return query.docs[0].id;
+    }
   }
 
   function navigateToProductScanner() {
