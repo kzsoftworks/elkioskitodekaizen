@@ -1,0 +1,27 @@
+import { get } from "lodash";
+import Constants from "expo-constants";
+
+const ENV = {
+  dev: {
+    FIREBASE_API_KEY: "",
+    FIREBASE_AUTH_DOMAIN: "",
+    FIREBASE_DATABASE_URL: "",
+    FIREBASE_PROJECT_ID: "",
+    FIREBASE_STORAGE_BUCKET: "",
+    FIREBASE_MESSAGE_SENDER_ID: "",
+    FIREBASE_APP_ID: "",
+    GOOGLE_CREDENTIALS_IOS_CLIENT_ID: "",
+    GOOGLE_CREDENTIALS_ANDROID_CLIENT_ID: "",
+  },
+  staging: {},
+  prod: {},
+};
+
+function getEnvVars(env = "") {
+  if (env === null || env === undefined || env === "") return ENV.dev;
+  if (env.indexOf("dev") !== -1) return ENV.dev;
+  if (env.indexOf("staging") !== -1) return ENV.staging;
+  if (env.indexOf("prod") !== -1) return ENV.prod;
+}
+
+export default getEnvVars(get(Constants, "manifest.releaseChannel", null));
