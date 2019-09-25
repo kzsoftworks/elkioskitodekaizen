@@ -1,18 +1,27 @@
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { AsyncStorage } from "react-native";
 import { NavigationActions } from "react-navigation";
 import * as Google from "expo-google-app-auth";
 import { Button } from "react-native-ui-kitten";
 import * as firebase from "firebase";
+import { getFirestore } from "../firebaseHelpers";
 import authState from "../states/authState";
 import Container from "../components/Container";
 import authConfig from "../authConfig";
-import initializeFirebase from "../initializeFirebase";
-import "@firebase/firestore";
 
 export default function SignIn({ navigation }) {
-  const dbh = initializeFirebase();
-  signIn();
+  const [dbh, setDbh] = useState(null);
+  const signInCallback = useCallback(signIn);
+
+  useEffect(() => {
+    setDbh(getFirestore());
+  }, []);
+
+  useEffect(() => {
+    if (dbh) {
+      signInCallback();
+    }
+  }, [dbh, signInCallback]);
 
   return (
     <Container>

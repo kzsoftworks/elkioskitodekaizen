@@ -12,7 +12,10 @@ const firebaseConfig = {
   appId: env.FIREBASE_APP_ID,
 };
 
-export default function initializeApp() {
-  firebase.initializeApp(firebaseConfig);
+export function initializeFirebase() {
+  return firebase.initializeApp(firebaseConfig);
+}
+
+export function getFirestore() {
   return firebase.firestore();
 }
