@@ -62,20 +62,25 @@ export default function ProductScanner({ navigation }) {
           {
             text: "Yes",
             onPress: async () => {
-              await dbh.collection("purchases").add({
-                cost: itemData.price,
-                date: new Date(),
-                user_id: authState.user.firebaseId,
-                item_id: itemDoc.ref.id,
-              });
-              Alert.alert("Sabelo!", `You purchased: ${itemData.name}`, [
-                {
-                  text: "Vapai",
-                  onPress: () => {
-                    setHasScanned(false);
+              try {
+                await dbh.collection("purchases").add({
+                  cost: itemData.price,
+                  date: new Date(),
+                  user_id: authState.user.firebaseId,
+                  item_id: itemDoc.ref.id,
+                  item_barcode: itemDoc.bar_code,
+                });
+                Alert.alert("Sabelo!", `You purchased: ${itemData.name}`, [
+                  {
+                    text: "Vapai",
+                    onPress: () => {
+                      setHasScanned(false);
+                    },
                   },
-                },
-              ]);
+                ]);
+              } catch (e) {
+                throw new Error("Fail", e);
+              }
               setHasScanned(false);
             },
           },

@@ -3,9 +3,6 @@ import { mapping, light as lightTheme } from "@eva-design/eva";
 import { ApplicationProvider, IconRegistry } from "react-native-ui-kitten";
 import { EvaIconsPack } from "@ui-kitten/eva-icons";
 import AppNavigator from "./AppNavigator";
-import { initializeFirebase } from "./firebaseHelpers";
-
-initializeFirebase();
 
 export default function App() {
   return (
