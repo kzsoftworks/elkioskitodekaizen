@@ -4,6 +4,7 @@ import FirebaseState from "../states/firebaseState";
 import { observer } from "mobx-react";
 import Container from "../components/Container";
 import { List, ListItem } from "react-native-ui-kitten";
+import { getMonth, getDate } from "date-fns";
 
 function PurchasesList() {
   const [purchasedItems, setPurchasedItems] = useState(null);
@@ -13,28 +14,30 @@ function PurchasesList() {
       .catch(console.log);
   }, []);
 
+  function log(e) {
+    console.log(e);
+    return true;
+  }
   return purchasedItems ? (
     <Container>
       <List
         data={purchasedItems}
         renderItem={({ item }) => {
           return (
-            <ListItem
-              title={item.item ? item.item.name : "null"}
-              titleStyle={{
-                backgroundColor: "#9c5cbf",
-                color: "white",
-                textAlign: "center",
-                padding: 20,
-                borderRadius: 10,
-              }}
-              description={
-                item.item &&
-                `${item.item.price} - ${new Date(
-                  item.date.seconds
-                ).getDate()}/${new Date(item.date.seconds).getMonth()}`
-              }
-            />
+            log(item.date) && (
+              <ListItem
+                title={item.item ? item.item.name : "null"}
+                titleStyle={{
+                  textAlign: "center",
+                }}
+                description={
+                  item.item &&
+                  `${item.item.price} pei - ${getMonth(item.date)}/${getDate(
+                    item.date
+                  )}`
+                }
+              />
+            )
           );
         }}
       />
