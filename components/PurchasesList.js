@@ -1,50 +1,52 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text } from "react-native";
 import FirebaseState from "../states/firebaseState";
 import { observer } from "mobx-react";
-import Container from "../components/Container";
-import { List, ListItem } from "react-native-ui-kitten";
-import { getMonth, getDate } from "date-fns";
+import Container from "./Container";
+import { toPurchasedItem } from "./PurchasedItem";
+import Constants from "expo-constants";
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    marginTop: Constants.statusBarHeight,
+  },
+});
 
 function PurchasesList() {
   const [purchasedItems, setPurchasedItems] = useState(null);
+  const [errorWhileQuerying, setErrorWhileQuerying] = useState(null);
+
   useEffect(() => {
     FirebaseState.getMonthPurchases()
       .then(v => setPurchasedItems(v))
-      .catch(console.log);
+      .catch(e => setErrorWhileQuerying(e || "Unknown error"));
   }, []);
 
-  function log(e) {
-    console.log(e);
-    return true;
+  if (errorWhileQuerying) {
+    return (
+      <Text>{`An error occurred while retrieving your purchases.\n${errorWhileQuerying}`}</Text>
+    );
+  } else if (purchasedItems) {
+    return (
+      <Container style={styles.container}>
+        <FlatList
+          data={purchasedItems}
+          keyExtractor={item => item.id}
+          renderItem={item => {
+            return item && item.item ? toPurchasedItem(item.item) : {};
+          }}
+          ListEmptyComponent={
+            <Text>No items were bought in the relevant time period.</Text>
+          }
+        />
+      </Container>
+    );
+  } else if (purchasedItems === null || purchasedItems === undefined) {
+    return <ActivityIndicator size="large" />;
+  } else {
+    return <Text>No items were bought in the relevant time period.</Text>;
   }
-  return purchasedItems ? (
-    <Container>
-      <List
-        data={purchasedItems}
-        renderItem={({ item }) => {
-          return (
-            log(item.date) && (
-              <ListItem
-                title={item.item ? item.item.name : "null"}
-                titleStyle={{
-                  textAlign: "center",
-                }}
-                description={
-                  item.item &&
-                  `${item.item.price} pei - ${getMonth(item.date)}/${getDate(
-                    item.date
-                  )}`
-                }
-              />
-            )
-          );
-        }}
-      />
-    </Container>
-  ) : (
-    <ActivityIndicator size="large" />
-  );
 }
 
 export default observer(PurchasesList);
