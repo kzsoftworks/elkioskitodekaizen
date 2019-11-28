@@ -11,4 +11,4 @@ web-build/
 web-report/
 .env
 .env.*
-.environment.js
+environment.js
