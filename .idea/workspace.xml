@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="24486b10-d32c-4ee6-8e44-04210f171b88" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.environment.js.sample" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/environment.js.sample" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/components/PurchasesList.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/PurchasesList.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />

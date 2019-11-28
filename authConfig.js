@@ -1,4 +1,4 @@
-import env from "./.environment";
+import env from "./environment";
 
 const authConfig = {
   iosClientId: env.GOOGLE_CREDENTIALS_IOS_CLIENT_ID,
