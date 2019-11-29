@@ -1,105 +1,222 @@
-import React, { useEffect, useState } from "react";
-import { Alert, StyleSheet } from "react-native";
-import styled from "styled-components/native";
-import * as Permissions from "expo-permissions";
+import React from "react";
+import { Alert, StyleSheet, Text, View } from "react-native";
+import {
+  askAsync as askPermissionsAsync,
+  CAMERA as CameraPermissions,
+} from "expo-permissions";
 import { Camera } from "expo-camera";
-import { Icon, Button } from "react-native-ui-kitten";
-import { getStatusBarHeight } from "react-native-status-bar-height";
 import { getFirestore } from "../firebaseHelpers";
 import authState from "../states/authState";
 import Container from "../components/Container";
+import { BarCodeScanner } from "expo-barcode-scanner";
+import {
+  FlashOffOutlineButton,
+  FlashOutlineButton,
+  MaximizeOutlineButton,
+  MoreHorizontalOutlineButton,
+  PersonOutlineButton,
+  PlusSquareOutlineButton,
+} from "../components/RoundButton";
+import HorizontalSlider from "../components/HorizontalSlider";
 
-export default function ProductScanner({ navigation }) {
-  const [dbh, setDbh] = useState(null);
-  const [hasScanned, setHasScanned] = useState(false);
+export default class ProductScanner extends React.Component {
+  state = {
+    dbh: null,
 
-  useEffect(() => {
-    setDbh(getFirestore());
-    getPermissionsAsync();
-  }, []);
+    cameraPermissionsGranted: false,
+    hasScanned: false,
+    focus: 0,
+    flash: Camera.Constants.FlashMode.off,
+    zoom: 0,
 
-  return (
-    <Container>
-      <Camera
-        ratio="16:9"
-        onBarCodeScanned={hasScanned ? undefined : handleBarCodeScanned}
-        style={StyleSheet.absoluteFillObject}
-      />
-      <ProfileButton
-        onPress={() => navigation.navigate("Profile")}
-        icon={() => <Icon fill="white" name="person-outline" />}
-      />
-    </Container>
-  );
+    showIcons: false,
+    showFocusSlider: false,
+    showZoomSlider: false,
+  };
 
-  async function getPermissionsAsync() {
-    await Permissions.askAsync(Permissions.CAMERA);
+  constructor(props) {
+    super(props);
+
+    this.handleBarCodeScanned = this.handleBarCodeScanned.bind(this);
+    this.showAskToBuyMessage = this.showAskToBuyMessage.bind(this);
+    this.renderCamera = this.renderCamera.bind(this);
+    this.renderButtons = this.renderButtons.bind(this);
   }
 
-  async function handleBarCodeScanned({ data }) {
-    setHasScanned(true);
-    const itemsRef = await dbh
+  async componentWillMount() {
+    const { status } = await askPermissionsAsync(CameraPermissions);
+    this.setState({
+      cameraPermissionsGranted: status === "granted",
+      dbh: getFirestore(),
+    });
+  }
+
+  componentDidMount() {
+    this.setState({ autoFocus: Camera.Constants.AutoFocus.off });
+  }
+
+  async handleBarCodeScanned({ data }) {
+    this.setState({ hasScanned: true });
+    const itemsRef = await this.state.dbh
       .collection("items")
-      .where("bar_code", "==", data)
+      .where("bar_code", "==", data) //"7798228640018" es crowie sabor chocolate, por ejemplo
       .limit(1)
       .get();
     if (itemsRef.empty) {
-      Alert.alert("Item doesn't exst", "Please contact the Office Manager.", [
+      Alert.alert(
+        "Item doesn't exist",
+        "If you think this is an error, please contact the Office Manager.",
+        [{ onPress: () => this.setState({ hasScanned: false }) }]
+      );
+    } else {
+      const itemData = itemsRef.docs[0].data();
+      this.showAskToBuyMessage(itemData);
+    }
+    // this.setState({ hasScanned: false });
+  }
+
+  showAskToBuyMessage(itemData) {
+    Alert.alert(
+      "Confirm purchase",
+      `Item: ${itemData.name}\nPrice: $${itemData.price}`,
+      [
         {
-          text: "Ok",
-          onPress: () => {
-            setHasScanned(false);
+          text: "Yes",
+          onPress: async () => {
+            try {
+              await this.state.dbh.collection("purchases").add({
+                user_id: authState.user.firebaseId,
+                barcode: itemData.bar_code,
+                name: itemData.name,
+                cost: itemData.price,
+                date: new Date(),
+              });
+              Alert.alert("Sabelo!", `You purchased: ${itemData.name}`, [
+                { onPress: () => this.setState({ hasScanned: false }) },
+              ]);
+            } catch (e) {
+              Alert.alert("An error has occurred", e.message, [
+                { onPress: () => this.setState({ hasScanned: false }) },
+              ]);
+            }
           },
         },
-      ]);
-    } else {
-      const itemDoc = itemsRef.docs[0];
-      const itemData = itemDoc.data();
-      Alert.alert(
-        "Confirm purchase ",
-        `Are you sure you want to buy ${itemData.name}?`,
-        [
-          {
-            text: "Yes",
-            onPress: async () => {
-              try {
-                await dbh.collection("purchases").add({
-                  cost: itemData.price,
-                  date: new Date(),
-                  user_id: authState.user.firebaseId,
-                  item_id: itemDoc.ref.id,
-                  item_barcode: itemDoc.bar_code,
-                });
-                Alert.alert("Sabelo!", `You purchased: ${itemData.name}`, [
-                  {
-                    text: "Vapai",
-                    onPress: () => {
-                      setHasScanned(false);
-                    },
-                  },
-                ]);
-              } catch (e) {
-                throw new Error("Fail", e);
-              }
-              setHasScanned(false);
-            },
-          },
-          {
-            text: "No",
-            onPress: () => setHasScanned(false),
-            style: "cancel",
-          },
-        ]
+        {
+          text: "No",
+          onPress: () => this.setState({ hasScanned: false }),
+          style: "cancel",
+        },
+      ]
+    );
+  }
+
+  render() {
+    if (!this.state.cameraPermissionsGranted) {
+      return (
+        <Text>
+          This app needs to use the camera in order to work. Grant the required
+          permissions.
+        </Text>
       );
     }
+    return (
+      <Container>
+        {this.renderCamera()}
+        {this.renderButtons()}
+      </Container>
+    );
+  }
+
+  renderButtons() {
+    return (
+      <View style={{ flex: 1, flexDirection: "column" }}>
+        {MoreHorizontalOutlineButton(() =>
+          this.setState({ showIcons: !this.state.showIcons })
+        )}
+        {this.state.showIcons && (
+          <View style={{ flex: 1, flexDirection: "column" }}>
+            {PersonOutlineButton(() =>
+              this.props.navigation.navigate("Profile")
+            )}
+            {this.state.flash === Camera.Constants.FlashMode.off
+              ? FlashOutlineButton(() =>
+                  this.setState({
+                    flash: Camera.Constants.FlashMode.torch,
+                  })
+                )
+              : FlashOffOutlineButton(() =>
+                  this.setState({
+                    flash: Camera.Constants.FlashMode.off,
+                  })
+                )}
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                maxHeight: 50,
+                height: "100%",
+              }}
+            >
+              {MaximizeOutlineButton(() =>
+                this.setState({
+                  showZoomSlider: !this.state.showZoomSlider,
+                })
+              )}
+              {this.state.showZoomSlider &&
+                HorizontalSlider(this.state.zoom, value => {
+                  this.setState({
+                    zoom: value,
+                  });
+                })}
+            </View>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                maxHeight: 50,
+                height: "100%",
+              }}
+            >
+              {PlusSquareOutlineButton(() =>
+                this.setState({
+                  showFocusSlider: !this.state.showFocusSlider,
+                })
+              )}
+              {this.state.showFocusSlider &&
+                HorizontalSlider(this.state.focus, value => {
+                  this.setState({
+                    focus: value,
+                  });
+                })}
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  }
+
+  renderCamera() {
+    return (
+      <Camera
+        ref={ref => {
+          this.camera = ref;
+        }}
+        type={Camera.Constants.Type.back}
+        flashMode={this.state.flash}
+        zoom={this.state.zoom}
+        focusDepth={this.state.focus}
+        autoFocus={this.state.autoFocus}
+        barCodeScannerSettings={{
+          barCodeTypes: [
+            BarCodeScanner.Constants.BarCodeType.ean13,
+            BarCodeScanner.Constants.BarCodeType.ean8,
+          ],
+        }}
+        onBarCodeScanned={
+          this.state.hasScanned ? undefined : this.handleBarCodeScanned
+        }
+        style={StyleSheet.absoluteFillObject}
+      />
+    );
   }
 }
-
-const ProfileButton = styled(Button)`
-  position: absolute;
-  top: ${getStatusBarHeight() + 25}px;
-  right: 25px;
-  height: 50px;
-  width: 50px;
-  border-radius: 25px;
-`;
