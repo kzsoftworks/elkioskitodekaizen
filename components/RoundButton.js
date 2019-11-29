@@ -21,11 +21,11 @@ export function PersonOutlineButton(onPressCallback) {
   );
 }
 
-export function FlashButton(onPressCallback) {
+export function BulbOutlineButton(onPressCallback) {
   return (
     <RoundButton
       onPress={onPressCallback}
-      icon={() => <Icon fill="white" name="flash" />}
+      icon={() => <Icon fill="white" name="bulb-outline" />}
     />
   );
 }
