@@ -38,3 +38,30 @@ export function FlashOffOutlineButton(onPressCallback) {
     />
   );
 }
+
+export function MoreHorizontalOutlineButton(onPressCallback) {
+  return (
+    <RoundButton
+      onPress={onPressCallback}
+      icon={() => <Icon fill="white" name="more-horizontal-outline" />}
+    />
+  );
+}
+
+export function MaximizeOutlineButton(onPressCallback) {
+  return (
+    <RoundButton
+      onPress={onPressCallback}
+      icon={() => <Icon fill="white" name="maximize-outline" />}
+    />
+  );
+}
+
+export function PlusSquareOutlineButton(onPressCallback) {
+  return (
+    <RoundButton
+      onPress={onPressCallback}
+      icon={() => <Icon fill="white" name="plus-square-outline" />}
+    />
+  );
+}
