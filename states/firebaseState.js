@@ -45,7 +45,7 @@ class FirebaseState {
         date: new Date(purchase.date.toMillis()),
       };
     });
-    console.log(purchases);
+    // console.log(purchases);
     return purchases;
   }
 }
