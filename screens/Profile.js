@@ -10,13 +10,14 @@ import { logout } from "../scripts/auth";
 import Container from "../components/Container";
 import PurchasesList from "../components/PurchasesList";
 import authState from "../states/authState";
+import { PersonOutlineButton } from "../components/RoundButton";
 
 export default observer(function Profile({ navigation }) {
   return (
     <Container>
       <User>
         <UserName>
-          <Icon name="person-outline" />
+          {PersonOutlineButton(() => {})}
           <Text>{get(authState, "user.name", "")}</Text>
         </UserName>
         <Button
