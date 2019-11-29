@@ -18,6 +18,19 @@ function formatText(name, cost, date) {
   name = name || "Unknown product";
   cost = cost === 0 ? cost : cost || "Unknown cost";
   cost = cost === "Unknown cost" ? cost : `$${cost}`;
+  date =
+    date && date instanceof Date
+      ? date.toLocaleString("en-US", {
+          era: "short",
+          year: "numeric",
+          month: "long",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        })
+      : date;
   date = date || "Unknown purchase date";
   return `${name}\n${cost}\n${date}`;
 }
