@@ -1,26 +1,16 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { NavigationActions } from "react-navigation";
 import { Button } from "react-native-ui-kitten";
 import { getFirestore } from "../firebaseHelpers";
 import Container from "../components/Container";
 import { login } from "../scripts/auth";
+import { navigateToScreen } from "../scripts/navigation";
 
 export default function SignIn({ navigation }) {
   const [dbh, setDbh] = useState(null);
 
-  const navigateToProductScanner = useCallback(
-    function() {
-      navigation.reset(
-        [NavigationActions.navigate({ routeName: "ProductScanner" })],
-        0
-      );
-    },
-    [navigation]
-  );
-
   const signInCallback = useCallback(
-    () => login(dbh, navigateToProductScanner),
-    [dbh, navigateToProductScanner]
+    () => login(dbh, () => navigateToScreen(navigation, "Home")),
+    [dbh, navigation]
   );
 
   useEffect(() => {
@@ -35,7 +25,9 @@ export default function SignIn({ navigation }) {
 
   return (
     <Container>
-      <Button onPress={() => login(dbh, navigateToProductScanner)}>
+      <Button
+        onPress={() => login(dbh, () => navigateToScreen(navigation, "Home"))}
+      >
         Sign In
       </Button>
     </Container>
