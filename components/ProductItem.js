@@ -1,5 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { getFirestore } from "../firebaseHelpers";
+import buyItemDialog from "../scripts/userDialogs";
 
 const styles = StyleSheet.create({
   item: {
@@ -21,15 +23,32 @@ function formatText(name, cost) {
   return `${name}\n${cost}`;
 }
 
-export function toProductItem(item) {
-  return ProductItem(item.bar_code, item.name, item.price);
+export function toProductItem(item, dbh, onPressCallback) {
+  return ProductItem(
+    item.bar_code,
+    item.name,
+    item.price,
+    dbh,
+    onPressCallback
+  );
 }
 
-export function ProductItem(barcode, name, cost) {
-  this.barcode = barcode;
+export function ProductItem(barcode, name, cost, dbh, onPressCallback) {
+  if (!onPressCallback) {
+    dbh = dbh || getFirestore();
+    onPressCallback = async () =>
+      await buyItemDialog(
+        dbh,
+        barcode,
+        () => {},
+        () => {},
+        () => {},
+        () => {}
+      );
+  }
 
   return (
-    <TouchableOpacity style={styles.item}>
+    <TouchableOpacity style={styles.item} onPress={onPressCallback}>
       <Text style={styles.description}>{formatText(name, cost)}</Text>
     </TouchableOpacity>
   );
