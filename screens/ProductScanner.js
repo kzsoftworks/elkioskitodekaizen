@@ -1,12 +1,11 @@
 import React from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import {
   askAsync as askPermissionsAsync,
   CAMERA as CameraPermissions,
 } from "expo-permissions";
 import { Camera } from "expo-camera";
 import { getFirestore } from "../firebaseHelpers";
-import authState from "../states/authState";
 import Container from "../components/Container";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import {
@@ -18,6 +17,7 @@ import {
   PlusSquareOutlineButton,
 } from "../components/RoundButton";
 import HorizontalSlider from "../components/HorizontalSlider";
+import buyItemDialog from "../scripts/userDialogs";
 
 export default class ProductScanner extends React.Component {
   state = {
@@ -38,7 +38,6 @@ export default class ProductScanner extends React.Component {
     super(props);
 
     this.handleBarCodeScanned = this.handleBarCodeScanned.bind(this);
-    this.showAskToBuyMessage = this.showAskToBuyMessage.bind(this);
     this.renderCamera = this.renderCamera.bind(this);
     this.renderButtons = this.renderButtons.bind(this);
   }
@@ -57,56 +56,13 @@ export default class ProductScanner extends React.Component {
 
   async handleBarCodeScanned({ data }) {
     this.setState({ hasScanned: true });
-    const itemsRef = await this.state.dbh
-      .collection("items")
-      .where("bar_code", "==", data) //"7798228640018" es crowie sabor chocolate, por ejemplo
-      .limit(1)
-      .get();
-    if (itemsRef.empty) {
-      Alert.alert(
-        "Item doesn't exist",
-        "If you think this is an error, please contact the Office Manager.",
-        [{ onPress: () => this.setState({ hasScanned: false }) }]
-      );
-    } else {
-      const itemData = itemsRef.docs[0].data();
-      this.showAskToBuyMessage(itemData);
-    }
-    // this.setState({ hasScanned: false });
-  }
-
-  showAskToBuyMessage(itemData) {
-    Alert.alert(
-      "Confirm purchase",
-      `Item: ${itemData.name}\nPrice: $${itemData.price}`,
-      [
-        {
-          text: "Yes",
-          onPress: async () => {
-            try {
-              await this.state.dbh.collection("purchases").add({
-                user_id: authState.user.firebaseId,
-                barcode: itemData.bar_code,
-                name: itemData.name,
-                cost: itemData.price,
-                date: new Date(),
-              });
-              Alert.alert("Sabelo!", `You purchased: ${itemData.name}`, [
-                { onPress: () => this.setState({ hasScanned: false }) },
-              ]);
-            } catch (e) {
-              Alert.alert("An error has occurred", e.message, [
-                { onPress: () => this.setState({ hasScanned: false }) },
-              ]);
-            }
-          },
-        },
-        {
-          text: "No",
-          onPress: () => this.setState({ hasScanned: false }),
-          style: "cancel",
-        },
-      ]
+    await buyItemDialog(
+      this.state.dbh,
+      data,
+      () => this.setState({ hasScanned: false }),
+      () => this.setState({ hasScanned: false }),
+      () => this.setState({ hasScanned: false }),
+      () => this.setState({ hasScanned: false })
     );
   }
 
