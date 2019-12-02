@@ -8,8 +8,8 @@ export default function HorizontalSlider(initialValue, onValueChangeCallback) {
       value={initialValue}
       minimumValue={0}
       maximumValue={1}
-      //   minimumTrackTintColor="#FFFFFF"
-      //   maximumTrackTintColor="#000000"
+      minimumTrackTintColor="#FFFFFF"
+      maximumTrackTintColor="#000000"
       onValueChange={onValueChangeCallback}
     />
   );
