@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import Constants from "expo-constants";
 import { toProductItem } from "./ProductItem";
 import Container from "./Container";
+import { getFirestore } from "../firebaseHelpers";
 
 const styles = StyleSheet.create({
   container: {
@@ -13,11 +14,13 @@ const styles = StyleSheet.create({
   },
 });
 
-export default observer(function ProductsList({ navigation }) {
+function ProductsList() {
   const [availableItems, setAvailableItems] = useState(null);
   const [errorWhileQuerying, setErrorWhileQuerying] = useState(null);
+  const [dbh, setDbh] = useState(null);
 
   useEffect(() => {
+    setDbh(getFirestore());
     FirebaseState.getAllItems()
       .then(v => setAvailableItems(v))
       .catch(e => setErrorWhileQuerying(e || "Unknown error"));
@@ -34,7 +37,7 @@ export default observer(function ProductsList({ navigation }) {
           data={availableItems}
           keyExtractor={item => item.bar_code}
           renderItem={item => {
-            return item && item.item ? toProductItem(item.item) : {};
+            return item && item.item ? toProductItem(item.item, dbh) : {};
           }}
           ListEmptyComponent={<Text>There are no available items.</Text>}
         />
@@ -45,4 +48,6 @@ export default observer(function ProductsList({ navigation }) {
   } else {
     return <Text>There are no available items.</Text>;
   }
-});
+}
+
+export default observer(ProductsList);
