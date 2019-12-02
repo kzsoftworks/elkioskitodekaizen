@@ -9,15 +9,16 @@ import { getFirestore } from "../firebaseHelpers";
 import Container from "../components/Container";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import {
+  ArrowBackButton,
   FlashOffOutlineButton,
   FlashOutlineButton,
   MaximizeOutlineButton,
   MoreHorizontalOutlineButton,
-  PersonOutlineButton,
   PlusSquareOutlineButton,
 } from "../components/RoundButton";
 import HorizontalSlider from "../components/HorizontalSlider";
 import buyItemDialog from "../scripts/userDialogs";
+import { navigateToScreen } from "../scripts/navigation";
 
 export default class ProductScanner extends React.Component {
   state = {
@@ -91,8 +92,8 @@ export default class ProductScanner extends React.Component {
         )}
         {this.state.showIcons && (
           <View style={{ flex: 1, flexDirection: "column" }}>
-            {PersonOutlineButton(() =>
-              this.props.navigation.navigate("Profile")
+            {ArrowBackButton(() =>
+              navigateToScreen(this.props.navigation, "Home")
             )}
             {this.state.flash === Camera.Constants.FlashMode.off
               ? FlashOutlineButton(() =>
