@@ -1,5 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { getFirestore } from "../firebaseHelpers";
+import buyItemDialog from "../scripts/userDialogs";
 
 const styles = StyleSheet.create({
   item: {
@@ -35,7 +37,7 @@ function formatText(name, cost, date) {
   return `${name}\n${cost}\n${date}`;
 }
 
-export function toPurchasedItem(item) {
+export function toPurchasedItem(item, dbh, onPressCallback) {
   let result = {};
   result.cost = item.cost;
   result.date = item.date;
@@ -47,12 +49,32 @@ export function toPurchasedItem(item) {
       result.name = `Item ${result.name}`;
     }
   }
-  return PurchasedItem(result.name, result.cost, result.date);
+  return PurchasedItem(
+    item.barcode,
+    result.name,
+    result.cost,
+    result.date,
+    dbh,
+    onPressCallback
+  );
 }
 
-export function PurchasedItem(name, cost, date) {
+export function PurchasedItem(barcode, name, cost, date, dbh, onPressCallback) {
+  if (!onPressCallback) {
+    dbh = dbh || getFirestore();
+    onPressCallback = async () =>
+      await buyItemDialog(
+        dbh,
+        barcode,
+        () => {},
+        () => {},
+        () => {},
+        () => {}
+      );
+  }
+
   return (
-    <TouchableOpacity style={styles.item}>
+    <TouchableOpacity style={styles.item} onPress={onPressCallback}>
       <Text style={styles.description}>{formatText(name, cost, date)}</Text>
     </TouchableOpacity>
   );

@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import Container from "./Container";
 import { toPurchasedItem } from "./PurchasedItem";
 import Constants from "expo-constants";
+import { getFirestore } from "../firebaseHelpers";
 
 const styles = StyleSheet.create({
   container: {
@@ -16,8 +17,10 @@ const styles = StyleSheet.create({
 function PurchasesList() {
   const [purchasedItems, setPurchasedItems] = useState(null);
   const [errorWhileQuerying, setErrorWhileQuerying] = useState(null);
+  const [dbh, setDbh] = useState(null);
 
   useEffect(() => {
+    setDbh(getFirestore());
     FirebaseState.getMonthPurchases()
       .then(v => setPurchasedItems(v))
       .catch(e => setErrorWhileQuerying(e || "Unknown error"));
@@ -34,7 +37,7 @@ function PurchasesList() {
           data={purchasedItems}
           keyExtractor={item => item.id}
           renderItem={item => {
-            return item && item.item ? toPurchasedItem(item.item) : {};
+            return item && item.item ? toPurchasedItem(item.item, dbh) : {};
           }}
           ListEmptyComponent={
             <Text>No items were bought in the relevant time period.</Text>
