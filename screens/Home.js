@@ -11,8 +11,10 @@ import { User } from "../components/User";
 export default observer(function Home({ navigation }) {
   return (
     <Container>
-      {User(get(authState, "user.name", ""), () =>
-        navigateToScreen(navigation, "Profile")
+      {User(
+        get(authState, "user.name", ""),
+        () => navigateToScreen(navigation, "Profile"),
+        get(authState, "user.photoUrl", "")
       )}
       <Button
         onPress={() => navigateToScreen(navigation, "ChooseProduct")}

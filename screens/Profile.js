@@ -13,7 +13,11 @@ import { User } from "../components/User";
 export default observer(function Profile({ navigation }) {
   return (
     <Container>
-      {User(get(authState, "user.name", ""), () => {})}
+      {User(
+        get(authState, "user.name", ""),
+        () => {},
+        get(authState, "user.photoUrl", "")
+      )}
       <View
         style={{
           position: "absolute",
