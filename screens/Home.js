@@ -1,23 +1,19 @@
 import React from "react";
 import { get } from "lodash";
 import { observer } from "mobx-react";
-import styled from "styled-components/native";
 import Container from "../components/Container";
 import authState from "../states/authState";
 import { logout } from "../scripts/auth";
-import { Button, Text } from "react-native-ui-kitten";
-import { PersonOutlineButton } from "../components/RoundButton";
+import { Button } from "react-native-ui-kitten";
 import { navigateToScreen } from "../scripts/navigation";
+import { User } from "../components/User";
 
 export default observer(function Home({ navigation }) {
   return (
     <Container>
-      <User>
-        <UserName>
-          {PersonOutlineButton(() => navigateToScreen(navigation, "Profile"))}
-          <Text>{get(authState, "user.name", "")}</Text>
-        </UserName>
-      </User>
+      {User(get(authState, "user.name", ""), () =>
+        navigateToScreen(navigation, "Profile")
+      )}
       <Button
         onPress={() => navigateToScreen(navigation, "ChooseProduct")}
         style={{
@@ -57,12 +53,3 @@ export default observer(function Home({ navigation }) {
     </Container>
   );
 });
-
-const User = styled.View`
-  padding-vertical: 60px;
-  justify-content: center;
-  align-items: center;
-`;
-const UserName = styled.View`
-  margin-bottom: 15px;
-`;
